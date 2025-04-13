@@ -13,6 +13,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'user',
   });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
@@ -21,7 +22,7 @@ export default function RegisterPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -30,27 +31,27 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(formData.email)) {
       newErrors.email = 'Invalid email address';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -58,13 +59,13 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setServerError('');
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -75,15 +76,16 @@ export default function RegisterPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          role: formData.role,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
       }
-      
+
       // Redirect to login page on successful registration
       router.push('/login?registered=true');
     } catch (error) {
@@ -102,14 +104,14 @@ export default function RegisterPage() {
             Create a new account
           </h2>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {serverError && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
               <p className="text-red-700">{serverError}</p>
             </div>
           )}
-          
+
           <FormInput
             id="name"
             label="Name"
@@ -119,7 +121,7 @@ export default function RegisterPage() {
             onChange={handleChange}
             error={errors.name}
           />
-          
+
           <FormInput
             id="email"
             label="Email Address"
@@ -130,7 +132,7 @@ export default function RegisterPage() {
             onChange={handleChange}
             error={errors.email}
           />
-          
+
           <FormInput
             id="password"
             label="Password"
@@ -141,7 +143,7 @@ export default function RegisterPage() {
             onChange={handleChange}
             error={errors.password}
           />
-          
+
           <FormInput
             id="confirmPassword"
             label="Confirm Password"
@@ -152,7 +154,23 @@ export default function RegisterPage() {
             onChange={handleChange}
             error={errors.confirmPassword}
           />
-          
+
+          <div className="mb-4">
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+              Role
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="text-sm">
               <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -160,7 +178,7 @@ export default function RegisterPage() {
               </Link>
             </div>
           </div>
-          
+
           <Button
             type="submit"
             disabled={isLoading}
