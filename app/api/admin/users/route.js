@@ -1,27 +1,29 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { PrismaClient } from '@prisma/client';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from '@/app/lib/prisma';
+
+const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {
     // Check if user is authenticated and has admin role
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
+
     if (session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
       );
     }
-    
+
     // Fetch all users
     const users = await prisma.user.findMany({
       select: {
@@ -37,7 +39,7 @@ export async function GET(request) {
         createdAt: 'desc',
       },
     });
-    
+
     return NextResponse.json({ users });
   } catch (error) {
     console.error('Error fetching users:', error);

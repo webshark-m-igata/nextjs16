@@ -9,10 +9,6 @@ generator client {
   output   = "../node_modules/.prisma/client"
 }
 
-generator seed {
-  provider = "node prisma/seed.js"
-}
-
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
