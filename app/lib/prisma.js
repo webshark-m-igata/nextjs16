@@ -4,8 +4,17 @@ import { PrismaClient } from '@prisma/client';
 // exhausting your database connection limit.
 const globalForPrisma = global;
 
-const prisma = globalForPrisma.prisma || new PrismaClient();
+let prisma;
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (typeof window === 'undefined') {
+  if (process.env.NODE_ENV === 'production') {
+    prisma = new PrismaClient();
+  } else {
+    if (!globalForPrisma.prisma) {
+      globalForPrisma.prisma = new PrismaClient();
+    }
+    prisma = globalForPrisma.prisma;
+  }
+}
 
 export default prisma;
